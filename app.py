@@ -16,6 +16,7 @@ owd_covid_data = pd.read_csv(owd_covid_url)
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
 
 df = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
 df = df
