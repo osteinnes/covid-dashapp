@@ -89,7 +89,7 @@ app.layout = html.Div([
 
 
 @app.callback(
-    dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
+    #dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
     [dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-xaxis-type', 'value'),
