@@ -6,6 +6,9 @@ import plotly.express as px
 import pandas as pd
 import requests
 
+import datetime as dt
+from dateutil.relativedelta import relativedelta
+
 # Import datasets
 owd_covid_url = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 owd_covid_data = pd.read_csv(owd_covid_url)
@@ -17,9 +20,14 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 df = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
 df = df
 
+epoch = dt.datetime.utcfromtimestamp(0)
+def unix_time_millis(dt):
+    return (dt - epoch).total_seconds() * 1000.0
+
 dff1 = None
 
 available_indicators = df.columns
+df["datetime"] = pd.to_datetime(df["date"], infer_datetime_format=True).values
 
 app.layout = html.Div([
     html.Div([
@@ -28,12 +36,12 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='crossfilter-xaxis-column',
                 options=[{'label': i, 'value': i} for i in available_indicators],
-                value='total_deaths'
+                value='total_deaths_per_million'
             ),
             dcc.RadioItems(
                 id='crossfilter-xaxis-type',
                 options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
-                value='Linear',
+                value='Log',
                 labelStyle={'display': 'inline-block'}
             )
         ],
@@ -43,7 +51,7 @@ app.layout = html.Div([
             dcc.Dropdown(
                 id='crossfilter-yaxis-column',
                 options=[{'label': i, 'value': i} for i in available_indicators],
-                value='new_tests'
+                value='total_cases_per_million'
             ),
             dcc.RadioItems(
                 id='crossfilter-yaxis-type',
@@ -67,16 +75,16 @@ app.layout = html.Div([
     html.Div([
         dcc.Graph(id='x-time-series'),
         dcc.Graph(id='y-time-series'),
-    ], style={'display': 'inline-block', 'width': '49%'}),
+    ], style={'display': 'inline-block', 'width': '49%'})
 
-    html.Div(dcc.Slider(
-        id='crossfilter-year--slider',
-        min=df['date'].min(),
-        max=df['date'].max(),
-        value=df['date'].max(),
-        marks={str(year): str(year) for year in df['date'].unique()},
-        step=None
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+    #html.Div(dcc.RangeSlider(
+    #    id='crossfilter-year--slider',
+    #    min=unix_time_millis(df["datetime"].min()),
+    #    max=unix_time_millis(df["datetime"].max()),
+    #    value=[unix_time_millis(df["datetime"].min()),unix_time_millis(df["datetime"].max())],
+    #    marks={str(year): str(year) for year in df["datetime"].unique()},
+    #    step=None
+    #), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
 ])
 
 
@@ -85,18 +93,21 @@ app.layout = html.Div([
     [dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-xaxis-type', 'value'),
-     dash.dependencies.Input('crossfilter-yaxis-type', 'value'),
-     dash.dependencies.Input('crossfilter-year--slider', 'value')])
+     dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
+     #dash.dependencies.Input('crossfilter-year--slider', 'value')])
 def update_graph(xaxis_column_name, yaxis_column_name,
-                 xaxis_type, yaxis_type,
-                 year_value):
-    dff = df[df["date"] == year_value]
+                 xaxis_type, yaxis_type):
+                 #year_value):
+    #print("test: ", df["datetime"])
+    #print("test2: ", pd.to_datetime(pd.Series(year_value[1]), unit="ms"))
+    #dff = df[df["datetime"].astype(str).str[:10] == str(pd.to_datetime(pd.Series(year_value[1]), unit="ms"))]
+    dff = df[df["datetime"].astype(str).str[:10] == "2020-05-05"]
+    #print(dff)
     fig = px.scatter(x=dff[xaxis_column_name],
             y=dff[yaxis_column_name],
             hover_name=dff['iso_code']
             )
 
-    print(dff['iso_code'].nunique())
     
     fig.update_traces(customdata=dff['iso_code'])
 
@@ -128,6 +139,7 @@ def create_time_series(dff, axis_type, title):
     return fig
 
 
+
 @app.callback(
     dash.dependencies.Output('x-time-series', 'figure'),
     [dash.dependencies.Input('crossfilter-indicator-scatter', 'hoverData'),
@@ -153,7 +165,6 @@ def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
 
 
 if __name__ == '__main__':
-    #app.run_server(mode='inline')
     app.run_server(debug=True)
 
 
