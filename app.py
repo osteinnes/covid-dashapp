@@ -1,17 +1,12 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.express as px
-
 import pandas as pd
-import requests
-
+import plotly.express as px
+from dateutil.relativedelta import relativedelta
+import time
 import datetime as dt
 from dateutil.relativedelta import relativedelta
-
-# Import datasets
-owd_covid_url = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
-owd_covid_data = pd.read_csv(owd_covid_url)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -21,14 +16,40 @@ server = app.server
 df = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
 df = df
 
-epoch = dt.datetime.utcfromtimestamp(0)
-def unix_time_millis(dt):
-    return (dt - epoch).total_seconds() * 1000.0
-
 dff1 = None
 
+df["date"] = pd.to_datetime(df["date"], infer_datetime_format=True).values
+daterange = pd.date_range(start=df["date"].min(),end=df["date"].min(),freq='M')
+
+def unixTimeMillis(dt):
+    ''' Convert datetime to unix timestamp '''
+    return int(time.mktime(dt.timetuple()))
+
+def unixToDatetime(unix):
+    ''' Convert unix timestamp to datetime. '''
+    #return pd.to_datetime(unix,unit='s').dt.date
+    return pd.to_datetime(pd.Series(unix), unit="s")
+
+
+def getMarks(start, end, Nth=100):
+    ''' Returns the marks for labeling. 
+        Every Nth value will be used.
+    '''
+
+    result = {}
+    for i, date in enumerate(daterange):
+        if(i%Nth == 1):
+            # Append value to dict
+            result[unixTimeMillis(date)] = str(date.strftime('%Y-%m-%d'))
+
+    return result
+
+epoch = dt.datetime.utcfromtimestamp(0)
+
+def unix_time_millis(d):
+    return (d - epoch).total_seconds() #* 1000.0
+
 available_indicators = df.columns
-df["datetime"] = pd.to_datetime(df["date"], infer_datetime_format=True).values
 
 app.layout = html.Div([
     html.Div([
@@ -76,16 +97,17 @@ app.layout = html.Div([
     html.Div([
         dcc.Graph(id='x-time-series'),
         dcc.Graph(id='y-time-series'),
-    ], style={'display': 'inline-block', 'width': '49%'})
+    ], style={'display': 'inline-block', 'width': '49%'}),
 
-    #html.Div(dcc.RangeSlider(
-    #    id='crossfilter-year--slider',
-    #    min=unix_time_millis(df["datetime"].min()),
-    #    max=unix_time_millis(df["datetime"].max()),
-    #    value=[unix_time_millis(df["datetime"].min()),unix_time_millis(df["datetime"].max())],
-    #    marks={str(year): str(year) for year in df["datetime"].unique()},
-    #    step=None
-    #), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+    html.Div(dcc.Slider(
+        id='crossfilter-year--slider',
+        min=unix_time_millis(df['date'].min()),
+        max=unix_time_millis(df['date'].max()),
+        value=unix_time_millis(df['date'].max()),
+        marks={unix_time_millis(year): str(year) for year in df['date'].drop_duplicates()},
+        step=None, 
+        tooltip = { 'always_visible': True }
+    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
 ])
 
 
@@ -94,16 +116,15 @@ app.layout = html.Div([
     [dash.dependencies.Input('crossfilter-xaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-xaxis-type', 'value'),
-     dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
-     #dash.dependencies.Input('crossfilter-year--slider', 'value')])
+     dash.dependencies.Input('crossfilter-yaxis-type', 'value'),
+     dash.dependencies.Input('crossfilter-year--slider', 'value')])
 def update_graph(xaxis_column_name, yaxis_column_name,
-                 xaxis_type, yaxis_type):
-                 #year_value):
-    #print("test: ", df["datetime"])
-    #print("test2: ", pd.to_datetime(pd.Series(year_value[1]), unit="ms"))
-    #dff = df[df["datetime"].astype(str).str[:10] == str(pd.to_datetime(pd.Series(year_value[1]), unit="ms"))]
-    dff = df[df["datetime"].astype(str).str[:10] == "2020-05-05"]
-    #print(dff)
+                 xaxis_type, yaxis_type,
+                 year_value):
+    print("Year: ", unixToDatetime(year_value).iloc[0])
+    print("date: ", df["date"])
+    dff = df[df["date"] == unixToDatetime(year_value).iloc[0]]
+    #print("dff: ", dff)
     fig = px.scatter(x=dff[xaxis_column_name],
             y=dff[yaxis_column_name],
             hover_name=dff['iso_code']
@@ -121,9 +142,9 @@ def update_graph(xaxis_column_name, yaxis_column_name,
     return fig
 
 
-def create_time_series(dff, axis_type, title):
-
-    fig = px.scatter(dff)
+def create_time_series(dff, axis_type, title, column_name):
+    
+    fig = px.scatter(x=dff["date"], y=dff[column_name])
 
     fig.update_traces(mode='lines+markers')
 
@@ -140,7 +161,6 @@ def create_time_series(dff, axis_type, title):
     return fig
 
 
-
 @app.callback(
     dash.dependencies.Output('x-time-series', 'figure'),
     [dash.dependencies.Input('crossfilter-indicator-scatter', 'hoverData'),
@@ -149,9 +169,9 @@ def create_time_series(dff, axis_type, title):
 def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
     country_name = hoverData['points'][0]['customdata']
     dff = df[df['iso_code'] == country_name]
-    dff = dff[xaxis_column_name]
+    #dff = dff[xaxis_column_name]
     title = '<b>{}</b><br>{}'.format(country_name, xaxis_column_name)
-    return create_time_series(dff, axis_type, title)
+    return create_time_series(dff, axis_type, title, xaxis_column_name)
 
 
 @app.callback(
@@ -161,12 +181,11 @@ def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
      dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
 def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
     dff = df[df['iso_code'] == hoverData['points'][0]['customdata']]
-    dff = dff[yaxis_column_name]
-    return create_time_series(dff, axis_type, yaxis_column_name)
+    #dff = dff[yaxis_column_name]
+    return create_time_series(dff, axis_type, yaxis_column_name, yaxis_column_name)
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
 
 
 
