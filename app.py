@@ -125,12 +125,10 @@ def update_graph(xaxis_column_name, yaxis_column_name,
     print("date: ", df["date"])
     dff = df[df["date"] == unixToDatetime(year_value).iloc[0]]
     #print("dff: ", dff)
+    print(dff['population'])
     fig = px.scatter(x=dff[xaxis_column_name],
             y=dff[yaxis_column_name],
-            hover_name=dff['iso_code'],
-            color=dff["iso_code"],
-            size=dff["population"],
-            size_max=60
+            hover_name=dff['iso_code']
             )
 
     
