@@ -107,9 +107,20 @@ app.layout = html.Div([
         marks={unix_time_millis(year): str(year) for year in df['date'].drop_duplicates()},
         step=None, 
         tooltip = { 'always_visible': True }
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'}),
+    html.Div([
+        dcc.Graph(id="world-map")
+    ], style={'width': '80%', 'display': 'inline-block', 'padding': '0 20'})
 ])
 
+
+@app.callback(dash.dependencies.Output('world-map', 'figure'),
+    [dash.dependencies.Input('crossfilter-year--slider', 'value')])
+def update_world_map(year_value):
+    dff = df[df["date"] == unixToDatetime(year_value).iloc[0]]
+    fig = px.choropleth(dff, locations="iso_code", color="total_cases_per_million",
+                        hover_name="iso_code", color_continuous_scale=px.colors.sequential.thermal)
+    return fig 
 
 @app.callback(
     dash.dependencies.Output('crossfilter-indicator-scatter', 'figure'),
