@@ -104,8 +104,8 @@ app.layout = html.Div([
         min=unix_time_millis(df['date'].min()),
         max=unix_time_millis(df['date'].max()),
         value=unix_time_millis(df['date'].max()),
-        marks={unix_time_millis(year): {'label': str(year)} for year in df['date'].drop_duplicates()},
-        step=None, 
+        marks={unix_time_millis(year): str(year) for year in df['date'].drop_duplicates()},
+        #step=None, 
         tooltip = { 'always_visible': True }
     ), style={'width': '49%', 'padding': '0px 20px 20px 20px'}),
     html.Div([
