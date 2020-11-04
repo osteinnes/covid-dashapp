@@ -198,5 +198,5 @@ def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, use_reloader=False)
 
