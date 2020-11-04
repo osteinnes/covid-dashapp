@@ -118,8 +118,8 @@ app.layout = html.Div([
     [dash.dependencies.Input('crossfilter-year--slider', 'value')])
 def update_world_map(year_value):
     dff = df[df["date"] == unixToDatetime(year_value).iloc[0]]
-    fig = px.choropleth(dff, locations="iso_code", color="total_cases_per_million",
-                        hover_name="iso_code", color_continuous_scale=px.colors.sequential.thermal)
+    fig = px.choropleth(dff, locations="location", color="total_cases_per_million",
+                        hover_name="location", color_continuous_scale=px.colors.sequential.thermal)
     return fig 
 
 @app.callback(
@@ -139,11 +139,11 @@ def update_graph(xaxis_column_name, yaxis_column_name,
     print(dff['population'])
     fig = px.scatter(x=dff[xaxis_column_name],
             y=dff[yaxis_column_name],
-            hover_name=dff['iso_code']
+            hover_name=dff['location']
             )
 
     
-    fig.update_traces(customdata=dff['iso_code'])
+    fig.update_traces(customdata=dff['location'])
 
     fig.update_xaxes(title=xaxis_column_name, type='linear' if xaxis_type == 'Linear' else 'log')
 
@@ -180,7 +180,7 @@ def create_time_series(dff, axis_type, title, column_name):
      dash.dependencies.Input('crossfilter-xaxis-type', 'value')])
 def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
     country_name = hoverData['points'][0]['customdata']
-    dff = df[df['iso_code'] == country_name]
+    dff = df[df['location'] == country_name]
     #dff = dff[xaxis_column_name]
     title = '<b>{}</b><br>{}'.format(country_name, xaxis_column_name)
     return create_time_series(dff, axis_type, title, xaxis_column_name)
@@ -192,7 +192,7 @@ def update_y_timeseries(hoverData, xaxis_column_name, axis_type):
      dash.dependencies.Input('crossfilter-yaxis-column', 'value'),
      dash.dependencies.Input('crossfilter-yaxis-type', 'value')])
 def update_x_timeseries(hoverData, yaxis_column_name, axis_type):
-    dff = df[df['iso_code'] == hoverData['points'][0]['customdata']]
+    dff = df[df['location'] == hoverData['points'][0]['customdata']]
     #dff = dff[yaxis_column_name]
     return create_time_series(dff, axis_type, yaxis_column_name, yaxis_column_name)
 
