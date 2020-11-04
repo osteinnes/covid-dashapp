@@ -106,7 +106,7 @@ app.layout = html.Div([
         value=unix_time_millis(df['date'].max()),
         marks={unix_time_millis(year): str(year) for year in df['date'].drop_duplicates()},
         #step=None, 
-        tooltip = { 'always_visible': False }
+        tooltip = { 'always_visible': True }
     ), style={'width': '49%', 'padding': '0px 20px 20px 20px'}),
     html.Div([
         dcc.Graph(id="world-map")
