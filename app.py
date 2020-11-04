@@ -118,8 +118,41 @@ app.layout = html.Div([
     [dash.dependencies.Input('crossfilter-year--slider', 'value')])
 def update_world_map(year_value):
     dff = df[df["date"] == unixToDatetime(year_value).iloc[0]]
-    fig = px.choropleth(dff, locations="iso_code", color="total_cases_per_million",
-                        hover_name="location", color_continuous_scale=px.colors.sequential.thermal)
+    #fig = px.choropleth(dff, locations="iso_code", color="total_cases_per_million",
+    #                    hover_name="location", color_continuous_scale=px.colors.sequential.thermal)
+
+
+    fig = go.Figure(data=go.Choropleth(
+        locations = dff['iso_code'],
+        z = dff['total_cases_per_million'],
+        text = dff['location'],
+        colorscale = 'Blues',
+        autocolorscale=False,
+        reversescale=True,
+        marker_line_color='darkgray',
+        marker_line_width=0.5,
+        #colorbar_tickprefix = '$',
+        colorbar_title = 'Cases per million',
+    ))
+
+    fig.update_layout(
+        title_text='Covid-19 Cases per million',
+        geo=dict(
+            showframe=False,
+            showcoastlines=False,
+            projection_type='equirectangular'
+        ),
+        annotations = [dict(
+            x=0.55,
+            y=0.1,
+            xref='paper',
+            yref='paper',
+            text='Source: <a href="https://www.cia.gov/library/publications/the-world-factbook/fields/2195.html">\
+                CIA World Factbook</a>',
+            showarrow = False
+        )]
+    )
+
     return fig 
 
 @app.callback(
