@@ -111,7 +111,7 @@ app.layout = html.Div([
     ), style={'width': '49%', 'padding': '0px 20px 20px 20px'}),
     html.Div([
         dcc.Graph(id="world-map")
-    ], style={'width': '80%', 'display': 'inline-block', 'padding': '0 20'})
+    ], style={'width': '90%', 'display': 'inline-block', 'padding': '0 20'})
 ])
 
 
@@ -127,7 +127,7 @@ def update_world_map(year_value):
         locations = dff['iso_code'],
         z = dff['total_cases_per_million'],
         text = dff['location'],
-        colorscale = 'Reds',
+        colorscale = 'Blues',
         autocolorscale=False,
         reversescale=True,
         marker_line_color='darkgray',
@@ -140,7 +140,7 @@ def update_world_map(year_value):
         title_text='Covid-19 Cases per million',
         geo=dict(
             showframe=False,
-            showcoastlines=False,
+            showcoastlines=True,
             projection_type='equirectangular'
         ),
         annotations = [dict(
