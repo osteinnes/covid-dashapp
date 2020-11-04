@@ -127,7 +127,7 @@ def update_world_map(year_value):
         locations = dff['iso_code'],
         z = dff['total_cases_per_million'],
         text = dff['location'],
-        colorscale = 'Blues',
+        colorscale = 'Reds',
         autocolorscale=False,
         reversescale=True,
         marker_line_color='darkgray',
