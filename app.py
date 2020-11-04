@@ -118,7 +118,7 @@ app.layout = html.Div([
     [dash.dependencies.Input('crossfilter-year--slider', 'value')])
 def update_world_map(year_value):
     dff = df[df["date"] == unixToDatetime(year_value).iloc[0]]
-    fig = px.choropleth(dff, locations="location", color="total_cases_per_million",
+    fig = px.choropleth(dff, locations="iso_code", color="total_cases_per_million",
                         hover_name="location", color_continuous_scale=px.colors.sequential.thermal)
     return fig 
 
