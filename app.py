@@ -148,8 +148,8 @@ def update_world_map(year_value):
             y=0.1,
             xref='paper',
             yref='paper',
-            text='Source: <a href="https://www.cia.gov/library/publications/the-world-factbook/fields/2195.html">\
-                CIA World Factbook</a>',
+            text='Source: <a href="https://github.com/owid/covid-19-data">\
+                Our World in Data - Covid-19 Dataset</a>',
             showarrow = False
         )]
     )
