@@ -87,7 +87,29 @@ layout = html.Div([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H5("Filter")
+                    html.H5("Filter"),
+                    dbc.Row([
+                        dbc.Select(
+                                id='filter1',
+                                options=[{'label': i, 'value': i} for i in owid_covid.filters],
+                                value='None'
+                        ),
+
+                    ]),
+                    dbc.Row([
+                        dbc.Select(
+                                id='filter2',
+                                options=[{'label': i, 'value': i} for i in owid_covid.filters],
+                                value='None'
+                        ),
+                    ]),
+                    dbc.Row([
+                        dbc.Select(
+                                id='filter3',
+                                options=[{'label': i, 'value': i} for i in owid_covid.filters],
+                                value='None'
+                        ),
+                    ]),
                 ])
             ]),
         ],width="5"),
