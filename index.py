@@ -12,6 +12,7 @@ from app import app
 from apps import home
 from apps import app2
 
+server = app.server
 
 app.layout = html.Div([
     dbc.NavbarSimple(
