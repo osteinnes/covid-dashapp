@@ -2,7 +2,8 @@
 import pandas as pd
 
 # Fetch data and fromat date
-df = pd.read_csv("https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_latest.csv")
+#df = pd.read_csv("https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_latest.csv")
+df = pd.read_csv("data/OxCGRT_latest.csv")
 df["Date"] = df["Date"].apply(lambda x: pd.to_datetime(str(x), format='%Y%m%d'))
 
 # List of used variables
