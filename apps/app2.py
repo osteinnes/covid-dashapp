@@ -84,6 +84,13 @@ layout = html.Div([
         dbc.Col([
             dcc.Graph(id="crossfilter-indicator-scatter"),
         ],width="5"),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Filter")
+                ])
+            ]),
+        ],width="5"),
     ],justify="center", align="center"),
     
     ])
