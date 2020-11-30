@@ -2,8 +2,8 @@
 import pandas as pd
 
 # Import OWID covid data to Pandas dataframe
-#df = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
-df = pd.read_csv("data/owid-covid-data_2020-10-19.csv")
+df = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
+#df = pd.read_csv("data/owid-covid-data_2020-10-19.csv")
 df = df[~df['location'].isin(["World"])]
 
 # Convert time to datetime.

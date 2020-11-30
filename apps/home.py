@@ -5,6 +5,12 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
+from statsmodels.tsa.ar_model import AR
+from statsmodels.tsa.ar_model import AutoReg
+from sklearn.metrics import r2_score
+
+import warnings
+warnings.filterwarnings('ignore', 'statsmodels.tsa.ar_model.AR', FutureWarning)
 
 # Import bootstrap components
 import dash_bootstrap_components as dbc
@@ -22,6 +28,9 @@ import pycountry
 
 # Import pages/apps
 from app import app
+
+
+
 
 
 
@@ -161,7 +170,7 @@ country_layout = html.Div([
                             html.P("Select Y-axis"),
                             dbc.Select(id='y_axis_comparison',
                             options=[{'label': i, 'value': i} for i in owid_covid.convert_to_readable(owid_covid.y_axis_comparison)],
-                            value='Total deaths per million')
+                            value='Total deaths')
                             ], width="4",
                         ),
                         dbc.Col([
@@ -178,6 +187,36 @@ country_layout = html.Div([
                     html.Br(),
 
                     dcc.Graph(id="comparison-graph"),
+                ]),
+           )], width=9),
+
+
+
+    ], justify="center", align="center"),
+
+
+    html.Br(),
+    
+    dbc.Row([
+        
+        dbc.Col([
+            dbc.Card(
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            html.P("Select Y-axis"),
+                            dbc.Select(id='y_axis_p',
+                            options=[{'label': i, 'value': i} for i in ["Total deaths", "Total cases"]],
+                            value='Total deaths')
+                            ], width="auto",
+                        ),
+                        
+                        ],justify="center", align="center",
+
+                    ),
+                    
+                    html.Br(),
+                    dcc.Graph(id="prediction-graph"),
                 ]),
            )], width=9),
 
@@ -232,6 +271,53 @@ layout = html.Div([
 ])
 
 @app.callback(
+    Output("prediction-graph", "figure"),
+    [
+        Input("y_axis_p", "value"),
+        Input("focus-country", "value"),
+    ]
+)
+def predict_fig(val1, country):
+    
+    
+    val = owid_covid.convert_to_original(val1)
+    cdf = owid_covid.df[owid_covid.df["location"] == country]
+    pdf = owid_covid.df[owid_covid.df["location"] == country]
+    pdf.set_index("date", inplace=True)
+    pdf = pdf[val].dropna()
+    
+    X = pdf
+
+    train_data = X[1:len(X)]
+    test_data = X[len(X)-12:]
+    
+    #train the autoregression model
+    model = AutoReg(endog=train_data, lags=[1,5,10,15], trend="ct", seasonal=False)
+    model_fitted = model.fit()
+    
+    # make predictions 
+    predictions = model_fitted.predict(
+        start=len(train_data), 
+        end=len(train_data) + 180, 
+        dynamic=False)
+    
+    pred = pd.DataFrame()
+    pred["date"] = predictions.index
+    pred[val]=predictions.values
+
+    fig = px.line(cdf, x="date", y=val, labels={
+                        val:val1,
+                        "date":"Time"
+                    })
+
+    fig.add_scatter(x=pred["date"], y=pred[val], name="Prediction")
+
+    return fig
+
+    
+
+
+@app.callback(
     Output('comparison-graph', "figure"),
     [
         Input("comparison-countries", "value"),
@@ -242,7 +328,7 @@ def plot_comparison(countries, y_key):
 
     if not isinstance(countries, list):
         countries = [countries]
-
+    print(countries)
     cdf = owid_covid.df
 
     # Filter
